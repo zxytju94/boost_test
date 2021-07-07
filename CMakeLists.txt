@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 3.3)
 
-set(CMAKE_C_COMPILER "/home/fpga/lib/gcc-5.4.0/bin/gcc")
-set(CMAKE_CXX_COMPILER "/home/fpga/lib/gcc-5.4.0/bin/g++")
+set(CMAKE_C_COMPILER "/home/lib/gcc-5.4.0/bin/gcc")
+set(CMAKE_CXX_COMPILER "/home/lib/gcc-5.4.0/bin/g++")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g -ggdb")  # add all signal table
@@ -29,7 +29,7 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_ROOT_PATH}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_ROOT_PATH}/lib)
 LINK_DIRECTORIES("${PROJECT_ROOT_PATH}/lib/")
 
-set(BOOST_ROOT "/home/fpga/lib/boost_1_64_0")
+set(BOOST_ROOT "/home/lib/boost_1_64_0")
 set(Boost_NO_SYSTEM_PATHS ON)
 
 find_package(Boost REQUIRED COMPONENTS
