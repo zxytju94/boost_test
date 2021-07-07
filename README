@@ -1,3 +1,9 @@
-cd build
+debug:
+cd build_d
+cmake -Ddebug=ON ../
+make
+
+release:
+cd build_r
 cmake ../
 make
