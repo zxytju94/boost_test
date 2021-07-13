@@ -10,6 +10,10 @@
 #include <unordered_map>
 #include <boost/unordered_map.hpp>
 #include <boost/unordered_set.hpp>
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/member.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/variant.hpp>
 
 void test_shared_ptr() {
   std::string book1("C plus plus");
@@ -148,4 +152,88 @@ void test_unmap() {
   ch_heart.insert(6);
   for (auto& ite : ch_heart)
     std::cout << "key->" << ite << std::endl;
+}
+
+struct path_name {} ;  
+struct creator {} ;
+
+typedef boost::multi_index_container<
+  file_node, // table element 
+  boost::multi_index::indexed_by<
+    boost::multi_index::ordered_unique< 
+      boost::multi_index::tag<path_name>,
+      BOOST_MULTI_INDEX_MEMBER(file_node, std::string, path_name)
+    >, // this is for file's path_name , like primary-key in database table
+   
+    boost::multi_index::ordered_non_unique<
+      boost::multi_index::tag<creator>,
+      BOOST_MULTI_INDEX_MEMBER(file_node, std::string, creator)
+    > // second index file node's creator
+  > // end indexed by
+> file_node_table;
+
+typedef boost::shared_ptr<file_node_table> ftPtr ;
+
+void test_multi_index() {
+  using namespace boost::multi_index;
+
+  ftPtr file_table_ptr(new file_node_table);
+  std::string file_path, author;
+  file_path = "/data/rsa_key";
+  author = "kokia";
+
+  file_table_ptr->insert( file_node (1200, "/tmp/rsa_key.pub", "Aimer") );
+  for (int i = 0; i < 5; i++) {
+    char no = i + '0';
+    file_table_ptr->insert( file_node(5 - i, file_path + no + ".txt", author));
+  }
+  std::cout << "++++++++++ print files by author +++++++++++" << std::endl;
+  file_node_table::index<creator>::type & index_by_author = file_table_ptr->get<creator>();
+  file_node_table::index<creator>::type::iterator creator_it = index_by_author.begin();
+
+  while (creator_it != index_by_author.end()) {
+    std::cout << *creator_it << std::endl;
+    creator_it++;
+  }
+
+  std::cout << "++++++++++ print files by path name +++++++++++" << std::endl;
+  file_node_table::index<path_name>::type & file_table_view_index_by_path_name =
+            file_table_ptr->get<path_name>() ;
+
+  // path_it points to the first element in the VIEW which sorted by path_name
+  file_node_table::index<path_name>::type::iterator
+         path_it = file_table_view_index_by_path_name.begin () ;
+
+  for ( ; path_it != file_table_view_index_by_path_name.end() ; path_it++ )
+  {
+    // call operator<< method of each object which pointed by iterator of path name
+    std::cout << *path_it << std::endl ;
+  }
+
+  std::cout << "---------- test find method ------------" << std::endl;
+
+  file_node_table::index<creator>::type::iterator 
+      itr(file_table_ptr->get<creator>().find("Aimer"));
+  if (itr != file_table_ptr->get<creator>().end()) {
+    std::cout << "find file node " << std::endl;
+    std::cout << *itr << std::endl;
+  }
+  else {
+    std::cout << "file node not find" << std::endl;
+  }
+}
+
+void test_variant() { // like a union, but the types are different
+  boost::variant<int, std::string, double> u;
+  u = 4;
+  int i = boost:: get<int >(u);
+  std::cout << "int : " << i << std ::endl;
+
+  u = "Hello world!";
+  std::string s = boost::get<std::string>(u);
+  std::cout << "std::string : " << s << std::endl;
+  
+  u = 3.30;
+  double d = boost::get<double>(u);
+  std::cout << "double : " << d << std::endl;
 }

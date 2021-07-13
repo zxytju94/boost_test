@@ -5,6 +5,6 @@ void test_thread();
 void test_condthread();
 void print_id(int );
 void go();
-
+void test_promise();
 
 #endif

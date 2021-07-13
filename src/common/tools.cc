@@ -4,6 +4,9 @@
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/point_xy.hpp>
 #include <boost/geometry/io/io.hpp>
+#include <boost/exception/all.hpp>
+#include <boost/system/error_code.hpp>
+
     
 void test_lexical_cast() {
   std::string s = "2.1";
@@ -58,4 +61,42 @@ void test_geometry() {
     mapper.map(b, "fill-opacity:0.2;fill:rgb(153,0,0);stroke:rgb(200,0,0);stroke-width:2");
     mapper.map(c, "fill-opacity:0.2;fill:rgb(0,153,0);stroke:rgb(0,200,0);stroke-width:2");
   }
+}
+
+struct both_exception : virtual boost::exception, virtual std::exception {
+};
+
+typedef boost::error_info<struct tag_err_no, int> err_no;
+typedef boost::error_info<struct tag_err_str, std::string> err_str;
+
+void test_exception() {
+  try 
+  {
+    try 
+    {
+      throw both_exception() << err_no(10);
+    }
+    catch (both_exception& e) {
+      std::cout << *boost::get_error_info<err_no>(e) << std::endl;
+      std::cout << e.what() << std::endl;
+      e << err_str("other info");
+      throw;
+    }
+  }
+  catch (both_exception& e)
+  {
+    std::cout << *boost::get_error_info<err_str>(e) << std::endl;
+    std::cout << e.what() << std::endl;
+  }
+}
+
+void test_error_code() {
+  using namespace boost::system;
+
+  error_code ec;
+  ec = errc::make_error_code(errc::not_supported);
+  std::cout << "err:\"not_supported\" value/category:" << ec.value() << " " << ec.category().name() << std::endl;
+
+  error_condition ecnd = ec.default_error_condition();
+  std::cout << "default err_cond: value/category:" << ecnd.value() << " " << ecnd.category().name() << std::endl;
 }

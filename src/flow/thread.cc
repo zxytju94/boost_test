@@ -1,8 +1,9 @@
 #include <iostream>
 #include <boost/thread.hpp>
+#include <boost/thread/future.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include "flow/signal.h"
-
+#include "flow/thread.h"
 
 boost::mutex mtx;
 boost::condition_variable cv;
@@ -17,6 +18,8 @@ void test_thread() {
   boost::posix_time::time_duration tm(0,0,3,765); 
   boost::this_thread::sleep(tm);
   // th1.timed_join(boost::posix_time::seconds(3));
+
+  //test_promise();
 }
 
 void print_id (int id) {
@@ -47,3 +50,20 @@ void test_condthread() {
     th.join();
 }
 
+/*
+void accmulate(boost::promise<int> &&p) {
+  int sum = 0;
+  for (int i = 0; i < 10; ++i) {
+    sum += i;
+  }
+  p.set_value(sum);
+}
+
+void test_promise() {         //  should to research std::thread  and std::future
+  boost::promise<int> p;
+  boost::unique_future<int> f = p.get_future();
+  boost::thread t(accmulate, boost::move(p));
+  t.detach();
+  std::cout << f.get() << std::endl;
+}
+*/   

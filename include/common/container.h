@@ -45,11 +45,56 @@ public:
 	boost::optional<Address> m_address;
 };
 
+struct file_node {
+  int id;
+  std::string path_name;
+  long length;
+  std::string creator;
+  
+  file_node( int id , std::string path_name , std::string creator ): 
+        id(id) , path_name(path_name) , length(0), creator(creator) {
+  }
+
+  inline friend std::ostream & operator<<(std::ostream& os, const file_node& f);
+};
+
+std::ostream& operator<<(std::ostream& os, const file_node& f) {
+  char file_buffer[1024];
+  std::string file_content;
+  bool isOpen = false;
+
+  FILE *fp = fopen(f.path_name.c_str() , "r");
+  if ( fp != NULL )
+    isOpen = true ;
+
+  if ( isOpen ) {
+    int ret = fread((void*)file_buffer , sizeof(char) , sizeof(file_buffer)-1 , fp );
+    file_buffer[ret] = '\0' ;
+    
+    file_content+= file_buffer ;
+
+    fclose (fp) ;
+  }
+  
+  else
+  {
+    file_content = "failed open file "+ f.path_name ;
+  }
+
+  os <<"[file path]     " << f.path_name << std::endl
+     << "[file index]     " << f.id << std::endl
+     <<"[file creator] " << f.creator << std::endl
+     <<"[file contents] " << file_content << std::endl << std::endl ; ;
+  return os ;
+}
+
 void test_shared_ptr();
 void test_any();
 void test_optional();
 void test_dy_bitset();
 void test_logic_tri();
 void test_unmap();
+void test_multi_index();
+void test_variant();
 
 #endif
