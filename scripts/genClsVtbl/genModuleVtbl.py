@@ -8,7 +8,10 @@ import os
 import sys
 import re
 import copy
+import logging
 
+LOG_FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
+logging.basicConfig(format = LOG_FORMAT, level = logging.DEBUG)
 
 class patterns():
   def __init__(self):
@@ -60,8 +63,8 @@ class Trans2Vtable:
     try:
       assert(len(var_match) > 0)
     except:
-      print("variable can not matched", end = "")
-      print(line)
+      logging.debug("variable can not matched", end = "")
+      logging.debug(line)
     #else:
     #  print(var_match)
     if var_match[0][1] not in self.offset_dict:
@@ -83,7 +86,7 @@ class Trans2Vtable:
         offset_minus = offset
         offset = int(parts[0][5], 16)
       if (offset == offset_minus):
-        print("src file variable:\n%s has overlaped" %vline)
+        logging.debug("src file variable:\n%s has overlaped" %vline)
         if i + 1 < len(tmpparts):
           res_offset = int(tmpparts[i+1][0][5], 16) - offset
           
@@ -91,7 +94,7 @@ class Trans2Vtable:
             if (parts[0][1] in self.offset_dict):
               res = self.offset_dict[parts[0][1]]
             else:
-              print("variable type is error!!")
+              logging.warning("variable type is error!!")
               res = 0x8
           else:
             res = 0x8

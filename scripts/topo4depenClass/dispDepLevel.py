@@ -2,6 +2,10 @@
 import copy
 import re
 import sys
+import logging
+
+LOG_FORMAT = "%(message)s"
+logging.basicConfig(format = LOG_FORMAT, level = logging.DEBUG)
 
 ignore_class = ["HDTree", "HSTVector", "STLIter", "HSTMap", "HSTSet", "UTF8", "STLConstIter", "CSL",\
                 "HSTHashMap", "HST2DVector", "HSTSList", "HSTPtrHashMap", "Data"]
@@ -50,7 +54,7 @@ class depen:
             if name not in ignore_class and name != className and len(name) > 0 and\
               name.find('_') == -1 and (name[0] >= 'A' and name[0] <= 'Z'):
               self.depenMap[className].add(name)
-              # print(name)
+              logging.debug(name)
             
         else:
           title_match = title_pattern.findall(line)
@@ -79,10 +83,10 @@ class depen:
       if len(removed) == 0:
         degree = degree + 1
       else:
-        print("\nClass level %d:" % lev)
+        logging.debug("\nClass level %d:" % lev)
         lev = lev + 1
         for cls in removed:
-          print(cls)
+          logging.debug(cls)
           del self.depensGraph[cls]
         for k in self.depensGraph:
           for cls in removed:

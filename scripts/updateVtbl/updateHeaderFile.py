@@ -5,9 +5,14 @@ import sys
 import re
 import copy
 import math
+import logging
+
+LOG_FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
+logging.basicCongfig(format = LOG_FORMAT, level = logging.DEBUG)
 
 skipped_class = []
 
+logging.disable(logging.CRITICAL)
 
 class patterns():
   def __init__(self):
@@ -163,7 +168,7 @@ class vtable():
     union_size = 0
     with open(self.prociseFile, 'r') as prociseFile:
       for i, line in enumerate(prociseFile):
-        #print(line)
+        logging.debug(line)
         line = re.sub(self.pattern.comment_block_single_line, "", line)
         line = re.sub(self.pattern.comment_line, "", line)
         
@@ -203,7 +208,7 @@ class vtable():
           var_union = self.pattern.variable_pattern.findall(line)
           if len(end_union) > 0:
             if union_size == 0:
-              print("skipped union %s_0x%s" % (end_union[0][0], end_union[0][1]))
+              logging.info("skipped union %s_0x%s" % (end_union[0][0], end_union[0][1]))
               union_flag = False
               continue
             vtable_part = [('', union_type, '', union_ptr, end_union[0][0], hex(int(end_union[0][1]) + union_size)[2:], '')]
@@ -316,7 +321,7 @@ class vtable():
             vtable_part = [('', vtable_name, '', '*', vtable_name, '0', '')]
             cache_parts.append(vtable_part)
             if (vtable_name not in self.allClassSet):
-              print("add %s in AllEmptyClass" % vtable_name)
+              logging.info("add %s in AllEmptyClass" % vtable_name)
               self.allClassSet.add(vtable_name)
           elif len(self.pattern.variable_pattern.findall(line)) > 0: # format the line
             var_match = self.pattern.variable_pattern.findall(line)
@@ -334,7 +339,7 @@ class vtable():
               var_match = [('', unsigned_var_match[0][1], '', unsigned_var_match[0][2], unsigned_var_match[0][3], unsigned_var_match[0][4], unsigned_var_match[0][5])]
             cache_parts.append(var_match)
             if var_match[0][1] not in self.offset_dict and var_match[0][1] not in self.allClassSet:
-              print("add %s in AllEmptyClass" % var_match[0][1])
+              logging.info("add %s in AllEmptyClass" % var_match[0][1])
               self.allClassSet.add(var_match[0][1])
             #if var_match[0][1] == "": assert(0)
             assert(len(var_match[0]) == 7)
@@ -345,7 +350,7 @@ class vtable():
     for class_key, vals in self.prociseClassParts.items():
       if len(vals) > 0:
         _, class_size = self.calculateNextOffset(int(vals[-1][0][5], 16), vals[-1])
-        #print("the size of class %s is 0x%x" % (class_key, class_size))
+        logging.info("the size of class %s is 0x%x" % (class_key, class_size))
         if (class_size != -1):
           self.offset_dict[class_key] = class_size
       else:
@@ -380,7 +385,7 @@ class vtable():
       lastOffset = int(lastPart[0][5], 16)
       _, lastOffset = self.calculateNextOffset(lastOffset, lastPart)
       if (lastOffset == -1):
-        print("Wrong! Please ask xiaoyu check.")
+        logging.critical("Wrong! Please ask xiaoyu check.")
         assert(0)
       lastOffset = math.ceil(lastOffset/8) * 8
 
@@ -406,7 +411,7 @@ class vtable():
     cur_offset = -8 # avoid to name vtable confilt
     for i, part in enumerate(parts):
       if i == 0 and int(part[0][5], 16) > 0:
-        print("Warning: please check class %s whether has 0x0 or not" % class_key)  
+        logging.waring("please check class %s whether has 0x0 or not" % class_key)  
       if part[0][1][-7:] == "_vtable":
         line = "  %s%s %s_%s%s; //%s\n" % (part[0][1], part[0][3], part[0][4], hex(cur_offset + 0x8), part[0][6], part[0][2])
       else:
@@ -437,7 +442,7 @@ class vtable():
       interpolation_num = math.floor((int(prociseParts[i+1][0][5], 16) - lastOffset)/ 8)
       for j in range(interpolation_num):
         prociseParts.insert(pos_offset + j + i, [('', 'uint64_t', '', '', 'qword', hex(lastOffset + j * 8)[2:], '')])
-        print("add var by interpolating")
+        logging.info("add var by interpolating")
       pos_offset += interpolation_num
 
     return prociseParts_new
@@ -521,7 +526,7 @@ class vtable():
             else:
               prociseParts[0] = [('', vtableName, '', '*', vtableName, '0', '')]
             if (vtableName not in self.allClassSet):
-              print("add %s in AllEmptyClass" % vtableName)
+              logging.info("add %s in AllEmptyClass" % vtableName)
               self.allClassSet.add(vtableName)
         self.finalClassVtableMap[class_key] = copy.copy(self.formated2line(class_key, prociseParts))
 

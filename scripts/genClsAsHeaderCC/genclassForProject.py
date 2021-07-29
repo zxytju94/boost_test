@@ -9,6 +9,10 @@ import os
 import sys
 import re
 import copy
+import logging
+
+LOG_FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
+logging.basicConfig(format = LOG_FORMAT, level = logging.DEBUG)
 
 def writeHfileHeader(output_h_file):
   output_h_file.write("/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil  -*- */\n")
@@ -104,10 +108,8 @@ def replaceUselessPart(funcParts):
 
 
 def addValueInMap(key, val, mymap):
-  if key not in mymap:
-    mymap[key] = [val]
-  else:
-    mymap[key].append(val)
+  mymap.setdefault(key, [])
+  mymap[key].append(val)
   return mymap
 
 
@@ -242,8 +244,8 @@ class genClass:
     try:
       assert(len(var_match) > 0)
     except:
-      print("variable can not matched", end = "")
-      print(line)
+      logging.debug("variable can not matched", end = "")
+      logging.debug(line)
     var_match = list(var_match[0])
     className = className.replace("::", "_")
     var_match[4] = var_match[4][len(className)+1:]
@@ -279,7 +281,7 @@ class genClass:
         for base in self.myFatherMap[class_key]:
           if base not in self.varsMap:
             if class_key in classList:
-              print("The base class of class %s is not in $module_structure.h, please check this class members manually." % class_key)
+              logging.debug("The base class of class %s is not in $module_structure.h, please check this class members manually." % class_key)
             continue
           base_vars = self.varsMap[base]
           if len(base_vars) == 0:
@@ -318,7 +320,7 @@ class genClass:
             base_has_replaced = True
             break
         except LookupError:
-          #print("cousin class not exist or idx is oevrflow")
+          logging.error("cousin class not exist or idx is oevrflow")
           pass
     if not base_has_replaced:
       for child in child_class:
@@ -334,7 +336,7 @@ class genClass:
             self.vFunsMap[className][idx][1:3] = func_part[1:3]
             break
         except LookupError:
-          print("child class %s can not find %s's corresponding function" % (child, className))
+          logging.error("child class %s can not find %s's corresponding function" % (child, className))
 
 
   def replaceSpecFuns(self, classList):
@@ -361,7 +363,7 @@ class genClass:
                 fun_parts[i][4] = " // __pure_virtual"
                 break
             except LookupError:
-              print("Can not replace the pure virtual function!")
+              logging.error("Can not replace the pure virtual function!")
 
 
   def writeVarsFuncs(self, className, h_stream, cc_stream):
